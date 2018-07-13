@@ -1,10 +1,8 @@
 defmodule PoolToy.PoolSup do
   use Supervisor
 
-  @name __MODULE__
-
   def start_link(args) when is_list(args) do
-    Supervisor.start_link(__MODULE__, args, name: @name)
+    Supervisor.start_link(__MODULE__, args)
   end
 
   def init(args) do

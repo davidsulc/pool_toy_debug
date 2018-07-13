@@ -16,7 +16,6 @@ defmodule PoolToy.MixProject do
     [
       mod: {PoolToy.Application, []},
       registered: [
-        PoolToy.PoolSup,
         PoolToy.PoolMan,
         PoolToy.WorkerSup
       ],
