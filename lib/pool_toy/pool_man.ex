@@ -3,15 +3,15 @@ defmodule PoolToy.PoolMan do
 
   defmodule State do
     defstruct [
-      :size, :monitors,
-      worker_sup: PoolToy.WorkerSup, worker_spec: Doubler, workers: []
+      :pool_sup, :size, :monitors, :worker_sup,
+      worker_spec: Doubler, workers: []
     ]
   end
 
   @name __MODULE__
 
-  def start_link(size) when is_integer(size) and size > 0 do
-    GenServer.start_link(__MODULE__, size, name: @name)
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: @name)
   end
 
   def checkout() do
@@ -22,11 +22,13 @@ defmodule PoolToy.PoolMan do
     GenServer.cast(@name, {:checkin, worker})
   end
 
-  def init(size) do
+  def init(args) do
+    sup = Keyword.fetch!(args, :pool_sup)
+    size = Keyword.fetch!(args, :size)
     Process.flag(:trap_exit, true)
-    send(self(), :start_workers)
+    send(self(), :start_worker_sup)
     monitors = :ets.new(:monitors, [:protected, :named_table])
-    {:ok, %State{size: size, monitors: monitors}}
+    {:ok, %State{pool_sup: sup, size: size, monitors: monitors}}
   end
 
   def handle_call(:checkout, _from, %State{workers: []} = state) do
@@ -50,13 +52,15 @@ defmodule PoolToy.PoolMan do
     end
   end
 
-  def handle_info(:start_workers, %State{worker_sup: sup, worker_spec: spec, size: size} = state) do
-    workers =
-      for _ <- 1..size do
-        new_worker(sup, spec)
-      end
+  def handle_info(:start_worker_sup, %State{pool_sup: sup, worker_spec: spec, size: size} = state) do
+    {:ok, worker_sup} = Supervisor.start_child(sup, PoolToy.WorkerSup)
 
-    {:noreply, %{state | workers: workers}}
+    state =
+      state
+      |> Map.put(:worker_sup, worker_sup)
+      |> start_workers()
+
+    {:noreply, state}
   end
 
   def handle_info({:DOWN, ref, :process, _, _}, %State{monitors: monitors} = state) do
@@ -87,6 +91,15 @@ defmodule PoolToy.PoolMan do
   def handle_info(msg, state) do
     IO.puts("Received unexpected message: #{inspect(msg)}")
     {:noreply, state}
+  end
+
+  defp start_workers(%State{worker_sup: sup, worker_spec: spec, size: size} = state) do
+    workers =
+      for _ <- 1..size do
+        new_worker(sup, spec)
+      end
+
+    %{state | workers: workers}
   end
 
   defp new_worker(sup, spec) do

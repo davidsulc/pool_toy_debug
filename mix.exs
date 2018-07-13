@@ -16,8 +16,7 @@ defmodule PoolToy.MixProject do
     [
       mod: {PoolToy.Application, []},
       registered: [
-        PoolToy.PoolMan,
-        PoolToy.WorkerSup
+        PoolToy.PoolMan
       ],
       extra_applications: [:logger]
     ]
