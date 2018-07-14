@@ -52,12 +52,10 @@ defmodule PoolToy.PoolMan do
     end
   end
 
-  def handle_info(:start_worker_sup, %State{pool_sup: sup, worker_spec: spec, size: size} = state) do
-    {:ok, worker_sup} = Supervisor.start_child(sup, PoolToy.WorkerSup)
-
+  def handle_info(:start_worker_sup, %State{} = state) do
     state =
       state
-      |> Map.put(:worker_sup, worker_sup)
+      |> start_worker_sup()
       |> start_workers()
 
     {:noreply, state}
@@ -71,6 +69,10 @@ defmodule PoolToy.PoolMan do
       [] ->
         {:noreply, state}
     end
+  end
+
+  def handle_info({:EXIT, pid, reason}, %State{worker_sup: pid} = state) do
+    {:stop, reason, state}
   end
 
   def handle_info({:EXIT, pid, _reason}, %State{workers: workers, monitors: monitors} = state) do
@@ -91,6 +93,14 @@ defmodule PoolToy.PoolMan do
   def handle_info(msg, state) do
     IO.puts("Received unexpected message: #{inspect(msg)}")
     {:noreply, state}
+  end
+
+  defp start_worker_sup(%State{pool_sup: sup} = state) do
+    {:ok, worker_sup} = Supervisor.start_child(sup, PoolToy.WorkerSup)
+    true = Process.link(worker_sup)
+
+    state
+    |> Map.put(:worker_sup, worker_sup)
   end
 
   defp start_workers(%State{worker_sup: sup, worker_spec: spec, size: size} = state) do
