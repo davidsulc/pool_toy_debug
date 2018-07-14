@@ -8,18 +8,17 @@ defmodule PoolToy.PoolMan do
     ]
   end
 
-  @name __MODULE__
-
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: @name)
+    name = Keyword.fetch!(args, :name)
+    GenServer.start_link(__MODULE__, args, name: name)
   end
 
-  def checkout() do
-    GenServer.call(@name, :checkout)
+  def checkout(pool) do
+    GenServer.call(pool, :checkout)
   end
 
-  def checkin(worker) do
-    GenServer.cast(@name, {:checkin, worker})
+  def checkin(pool, worker) do
+    GenServer.cast(pool, {:checkin, worker})
   end
 
   def init(args) do
