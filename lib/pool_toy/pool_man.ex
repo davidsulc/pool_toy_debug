@@ -22,11 +22,10 @@ defmodule PoolToy.PoolMan do
   end
 
   def init(args) do
-    sup = Keyword.fetch!(args, :pool_sup)
-    size = Keyword.fetch!(args, :size)
+    [sup, size, name] = [:pool_sup, :size, :name] |> Enum.map(&Keyword.fetch!(args, &1))
     Process.flag(:trap_exit, true)
     send(self(), :start_worker_sup)
-    monitors = :ets.new(:monitors, [:protected, :named_table])
+    monitors = :ets.new(:"monitors_#{name}", [:protected, :named_table])
     {:ok, %State{pool_sup: sup, size: size, monitors: monitors}}
   end
 
