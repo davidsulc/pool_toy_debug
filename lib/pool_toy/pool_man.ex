@@ -3,7 +3,7 @@ defmodule PoolToy.PoolMan do
 
   defmodule State do
     defstruct [
-      :pool_sup, :size, :monitors, :worker_sup,
+      :name, :pool_sup, :size, :monitors, :worker_sup,
       worker_spec: Doubler, workers: []
     ]
   end
@@ -22,11 +22,27 @@ defmodule PoolToy.PoolMan do
   end
 
   def init(args) do
-    [sup, size, name] = [:pool_sup, :size, :name] |> Enum.map(&Keyword.fetch!(args, &1))
+    init(args, %State{})
+  end
+
+  defp init([{:name, name} | rest], %State{} = state) do
+    init(rest, %{state | name: name})
+  end
+
+  defp init([{:pool_sup, sup} | rest], %State{} = state) do
+    init(rest, %{state | pool_sup: sup})
+  end
+
+  defp init([{:size, size} | rest], %State{} = state) do
+    init(rest, %{state | size: size})
+  end
+
+  defp init([], %State{} = state) do
+    %State{name: name} = state
     Process.flag(:trap_exit, true)
     send(self(), :start_worker_sup)
     monitors = :ets.new(:"monitors_#{name}", [:protected, :named_table])
-    {:ok, %State{pool_sup: sup, size: size, monitors: monitors}}
+    {:ok, %{state | monitors: monitors}}
   end
 
   def handle_call(:checkout, _from, %State{workers: []} = state) do
