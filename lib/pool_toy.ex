@@ -1,18 +1,6 @@
 defmodule PoolToy do
-  @moduledoc """
-  Documentation for PoolToy.
-  """
+  defdelegate start_pool(args), to: PoolToy.PoolsSup
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> PoolToy.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
+  defdelegate checkout(pool), to: PoolToy.PoolMan
+  defdelegate checkin(pool, worker), to: PoolToy.PoolMan
 end
