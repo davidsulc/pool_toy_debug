@@ -6,11 +6,10 @@ defmodule PoolToy.PoolSup do
   end
 
   def init(args) do
-    name = args |> Keyword.fetch!(:name)
-    pool_size = args |> Keyword.fetch!(:size)
+    args = Keyword.put_new(args, :pool_sup, self())
 
     children = [
-      {PoolToy.PoolMan, [pool_sup: self(), name: name, size: pool_size]}
+      {PoolToy.PoolMan, args}
     ]
 
     Supervisor.init(children, strategy: :one_for_all)

@@ -3,8 +3,10 @@ defmodule PoolToy.PoolMan do
 
   defmodule State do
     defstruct [
-      :name, :pool_sup, :size, :monitors, :worker_sup,
-      worker_spec: Doubler, workers: []
+      # provided as (mandatory) args
+      :name, :worker_spec, :size,
+      # internal state
+      :pool_sup, :worker_sup, :monitors, workers: []
     ]
   end
 
@@ -35,6 +37,10 @@ defmodule PoolToy.PoolMan do
 
   defp init([{:size, size} | rest], %State{} = state) do
     init(rest, %{state | size: size})
+  end
+
+  defp init([{:worker_spec, spec} | rest], %State{} = state) do
+    init(rest, %{state | worker_spec: spec})
   end
 
   defp init([], %State{} = state) do
