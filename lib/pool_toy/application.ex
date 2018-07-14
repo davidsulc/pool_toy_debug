@@ -3,7 +3,8 @@ defmodule PoolToy.Application do
 
   def start(_type, _args) do
     children = [
-      PoolToy.PoolsSup
+      PoolToy.PoolsSup,
+      PoolToy.PoolsMan
     ]
 
     opts = [strategy: :one_for_one]
