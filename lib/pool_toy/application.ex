@@ -3,6 +3,7 @@ defmodule PoolToy.Application do
 
   def start(_type, _args) do
     children = [
+      {Registry, [keys: :unique, name: PoolToy.Registry]},
       PoolToy.PoolsSup,
       PoolToy.PoolsMan
     ]
