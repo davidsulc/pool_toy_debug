@@ -3,12 +3,16 @@ defmodule PoolToy.PoolsMan do
 
   @name __MODULE__
 
+  defmodule State do
+    defstruct []
+  end
+
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: @name)
   end
 
   def start_pool(args) do
-    PoolToy.PoolsSup.start_pool(args)
+    GenServer.call(@name, {:start_pool, args})
   end
 
   def stop_pool(pool) do
@@ -16,6 +20,11 @@ defmodule PoolToy.PoolsMan do
   end
 
   def init(args) do
-    {:ok, :ok}
+    {:ok, %State{}}
+  end
+
+  def handle_call({:start_pool, args}, _from, %State{} = state) do
+    result = PoolToy.PoolsSup.start_pool(args)
+    {:reply, result, state}
   end
 end

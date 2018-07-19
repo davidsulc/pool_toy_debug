@@ -8,8 +8,10 @@ defmodule PoolToy.PoolsSup do
   end
 
   def start_pool(args) do
-    {:ok, _} = DynamicSupervisor.start_child(@name, {PoolToy.PoolSup, args})
-    :ok
+    case DynamicSupervisor.start_child(@name, {PoolToy.PoolSup, args}) do
+      {:ok, _} -> :ok
+      {:error, _} = error -> error
+    end
   end
 
   def stop_pool(pool_sup) do
