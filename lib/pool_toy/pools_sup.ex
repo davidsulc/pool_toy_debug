@@ -14,7 +14,8 @@ defmodule PoolToy.PoolsSup do
     end
   end
 
-  def stop_pool(pool_sup) do
+  def stop_pool(pool_name) do
+    [{_, pool_sup}] = Registry.lookup(PoolToy.Registry, pool_name)
     DynamicSupervisor.terminate_child(@name, pool_sup)
   end
 

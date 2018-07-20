@@ -6,8 +6,10 @@ defmodule PoolToy.PoolSup do
   end
 
   def init(args) do
-    args = Keyword.put_new(args, :pool_sup, self())
+    pool_name = Keyword.fetch!(args, :name)
+    {:ok, _} = Registry.register(PoolToy.Registry, pool_name, self())
 
+    args = Keyword.put_new(args, :pool_sup, self())
     children = [
       {PoolToy.PoolMan, args}
     ]
